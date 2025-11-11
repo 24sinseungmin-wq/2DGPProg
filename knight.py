@@ -1,7 +1,11 @@
 from pico2d import load_image, get_time, load_font, draw_rectangle
 import math
+
+from sdl2 import SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4
+
 import play_loop
 import interface
+import world
 
 class Knight:
     def __init__(self):
@@ -76,6 +80,11 @@ class Knight:
                         self.vx,self.vy,self.face_dir=self.facedirection(self.x,self.y,self.tx,self.ty)
                         self.vx *= self.attackspeed
                         self.vy *= self.attackspeed
+                        particle=Swordeffect(self)
+                        if self.face_dir==1 or self.face_dir==3:
+                            world.add_object(particle, 7)
+                        else:
+                            world.add_object(particle,9)
                     else:
                         if interface.toggleR:
                             self.state = 'walking'
@@ -184,3 +193,32 @@ class Knight:
             print(f'self.frame')
         elif self.state == "attack_cooldown":
             self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+36,96,96)
+
+class Swordeffect:
+    image_1=None
+    def __init__(self,knight,type=0,dir=0):
+        self.knight=knight
+        self.x=self.knight.x
+        self.y=self.knight.y
+        self.vx=self.knight.vx*1.1
+        self.vy=self.knight.vy*1.1
+        self.dir=dir
+        self.state_timer=0
+        self.frame=0
+        if type==0:
+            self.dir=self.knight.face_dir
+        if Swordeffect.image_1 == None:
+            Swordeffect.image_1=load_image('knight_attack_effect.png')
+    def update(self):
+        dt=play_loop.frame_time
+        self.state_timer+=dt
+        if self.knight.state=="attacking":
+            self.x += self.vx * dt
+            self.y += self.vy * dt
+        self.frame=(self.state_timer*4*4)
+        if self.frame>4: self.frame=4
+        if self.state_timer>0.25:
+            world.remove_object(self)
+    def draw(self):
+        Swordeffect.image_1.clip_draw((int(self.frame) % 4) * 64, (self.dir) * 64, 64, 64, int(self.x / 3) * 3, int(self.y / 3) * 3 + 32, 192, 192)
+

@@ -1,4 +1,4 @@
-world = [[] for _ in range(4)]
+world = [[] for _ in range(12)]
 
 def add_object(o, depth = 0):
     world[depth].append(o)

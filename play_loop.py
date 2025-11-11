@@ -26,7 +26,7 @@ def handle_events():
 def initscene():
     global knight
     knight = Knight()
-    world.add_object(knight,2)
+    world.add_object(knight,8)
 
 def update():
     global running
