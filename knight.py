@@ -185,14 +185,13 @@ class Knight:
 
     def draw(self):
         if self.state=="walking":
-            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int(self.x/3)*3,int(self.y/3)*3+36,96,96)
+            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int(self.x/3)*3,int(self.y/3)*3+48,96,96)
         elif self.state == "attack_charge" or self.state=="idle":
-            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+36,96,96)
+            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+48,96,96)
         elif self.state == "attacking":
-            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+36,96,96)
-            print(f'self.frame')
+            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+48,96,96)
         elif self.state == "attack_cooldown":
-            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+36,96,96)
+            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+48,96,96)
 
 class Swordeffect:
     image_1=None
@@ -213,8 +212,8 @@ class Swordeffect:
         dt=play_loop.frame_time
         self.state_timer+=dt
         if self.knight.state=="attacking":
-            self.x += self.vx * dt
-            self.y += self.vy * dt
+            self.x = self.knight.x
+            self.y = self.knight.y
         self.frame=(self.state_timer*4*4)
         if self.frame>4: self.frame=4
         if self.state_timer>0.25:
