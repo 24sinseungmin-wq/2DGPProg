@@ -18,16 +18,19 @@ class Knight:
         self.state="walking"
         self.face_dir=1
         self.state_timer=0
-        self.delay=get_time()
         self.frame=0
         self.x=0
         self.y =0
+        self.r=15
         self.vx=self.vy=0
         self.order=[]
+        self.collision=[]
         self.tx=self.ty=0
         self.action='none'
         self.able_action=True
         self.able_walk=True
+        self.typename="knight"
+        self.delete=False
 
     def update(self):
         #interface에서 들어온 명령 받음
@@ -185,13 +188,13 @@ class Knight:
 
     def draw(self):
         if self.state=="walking":
-            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int(self.x/3)*3,int(self.y/3)*3+48,96,96)
+            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int((self.x-play_loop.cam_x)/3)*3,int((self.y-play_loop.cam_y)/3)*3+48,96,96)
         elif self.state == "attack_charge" or self.state=="idle":
-            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+48,96,96)
+            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int((self.x-play_loop.cam_x)/3)*3, int((self.y-play_loop.cam_y)/3)*3+48,96,96)
         elif self.state == "attacking":
-            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+48,96,96)
+            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/3)*3, int((self.y-play_loop.cam_y)/3)*3+48,96,96)
         elif self.state == "attack_cooldown":
-            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int(self.x/3)*3, int(self.y/3)*3+48,96,96)
+            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/3)*3, int((self.y-play_loop.cam_y)/3)*3+48,96,96)
 
 class Swordeffect:
     image_1=None
@@ -204,10 +207,12 @@ class Swordeffect:
         self.dir=dir
         self.state_timer=0
         self.frame=0
+        self.typename="particle"
+        self.delete=False
         if type==0:
             self.dir=self.knight.face_dir
-        if Swordeffect.image_1 == None:
-            Swordeffect.image_1=load_image('knight_attack_effect.png')
+            if Swordeffect.image_1 == None:
+                Swordeffect.image_1=load_image('knight_attack_effect.png')
     def update(self):
         dt=play_loop.frame_time
         self.state_timer+=dt
@@ -217,7 +222,6 @@ class Swordeffect:
         self.frame=(self.state_timer*4*4)
         if self.frame>4: self.frame=4
         if self.state_timer>0.25:
-            world.remove_object(self)
+            self.delete=True
     def draw(self):
-        Swordeffect.image_1.clip_draw((int(self.frame) % 4) * 64, (self.dir) * 64, 64, 64, int(self.x / 3) * 3, int(self.y / 3) * 3 + 32, 192, 192)
-
+        Swordeffect.image_1.clip_draw((int(self.frame) % 4) * 64, (self.dir) * 64, 64, 64, int((self.x-play_loop.cam_x)/ 3) * 3, int((self.y-play_loop.cam_y) / 3) * 3 + 32, 192, 192)

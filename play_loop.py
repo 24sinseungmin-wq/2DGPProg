@@ -1,11 +1,14 @@
 from pico2d import *
 import world,interface,time
 from knight import Knight
+from slime import Slime
 
 frame_time = 0.0
 current_time = time.time()
 knight=None
 running=True
+cam_x=0
+cam_y=0
 
 def handle_events():
     global running
@@ -26,7 +29,10 @@ def handle_events():
 def initscene():
     global knight
     knight = Knight()
+    monster = []
     world.add_object(knight,8)
+    monster.append(Slime())
+    world.add_object(monster[len(monster)-1],8)
 
 def update():
     global running
@@ -36,7 +42,20 @@ def update():
     global frame_time,current_time
     frame_time = time.time() - current_time
     current_time += frame_time
+    world.sortbypos(8)
     world.update()
+    #camtoknight()
+
+def camtoknight():
+    global cam_x
+    global cam_y
+    global knight
+    to_x=knight.x-800.0
+    to_y=knight.y-300.0
+    cam_x=to_x
+    cam_y=to_y
+    #cam_x=to_x*(1-pow(0.01,frame_time))+cam_x*pow(0.01,frame_time)
+    #cam_y=to_y*(1-pow(0.01,frame_time))+cam_y*pow(0.01,frame_time)
 
 def draw():
     clear_canvas()
