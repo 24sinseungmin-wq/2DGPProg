@@ -29,10 +29,13 @@ def handle_events():
 def initscene():
     global knight
     knight = Knight()
+    knight.x=600
+    knight.y=300
     monster = []
     world.add_object(knight,8)
-    monster.append(Slime())
-    world.add_object(monster[len(monster)-1],8)
+    for i in range(5):
+        monster.append(Slime())
+        world.add_object(monster[len(monster) - 1], 8)
 
 def update():
     global running

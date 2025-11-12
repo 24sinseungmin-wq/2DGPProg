@@ -63,6 +63,7 @@ def collidemanage():
             raise ValueError('Cannot manage collision with non existing object(s)')
         collide[0].collision.append([collide[1],collide[2]])
         collide[1].collision.append([collide[0],collide[2]])
+    collide_checklist = []
 
 def deletemanage():
     global world

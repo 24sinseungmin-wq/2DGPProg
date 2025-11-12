@@ -9,6 +9,7 @@ import play_loop
 import world
 
 FAINT_TIME=0.5
+MAX_HEIGHT=400
 
 class Slime(Monster):
     jump_image=None
@@ -28,9 +29,12 @@ class Slime(Monster):
         self.frame=0
         self.x=x
         self.y=y
+        self.height=0
+        self.sx=self.sy=0
+        self.tx=self.ty=0
         self.r=18
         self.vx=self.vy=0
-        self.tx=self.ty=0
+        self.vbx=self.vby=0
         self.able_action=True
 
     def images(self):
@@ -42,7 +46,6 @@ class Slime(Monster):
 
     def update_normal(self):
         dt = play_loop.frame_time
-
         self.collisionchecked=[]
         world.collidecheck(self,"knight","collidewithenemy")
         world.collidecheck(self,"monster","collidewithteam")
@@ -53,12 +56,20 @@ class Slime(Monster):
                 if case[0].typename=="knight":
                     pass
                 elif case[0].typename=="monster":
-                    tempdist=math.sqrt((self.x-case[0].x)**2+(self.y-case[0].y)**2)
-                    tempvx,tempvy,temp,temp=self.facedirection(self.x,self.y,case[0].x,case[0].y)
-                    kbdist=(tempdist-self.r-case[0].r)**2
-                    self.vx+=tempvx*kbdist*dt
-                    self.vy+=tempvy*kbdist*dt
-                    pass
+                    if (self.state!="jumping" and self.state_timer>0.75 and self.state_timer<=1.0)==False:
+                        if self.x==case[0].x and self.y==case[0].y:
+                            self.x+=3*(random.random()-0.5)
+                            self.y+=3*(random.random()-0.5)
+                        tempdist = math.sqrt((self.x - case[0].x) ** 2 + (self.y - case[0].y) ** 2)
+                        if (self.x-case[0].x)**2+(self.y-case[0].y)**2 > (self.x+self.vbx-case[0].x-case[0].vbx)**2+(self.y+self.vby-case[0].y-case[0].vby)**2:
+                            tmp_vx,tmp_vy=(self.vbx-case[0].vbx),(self.vby-case[0].vby)
+                            if tmp_vx**2+tmp_vy**2>100:
+                                self.vx/=math.sqrt(tmp_vx**2+tmp_vy**2)
+                                self.vy/=math.sqrt(tmp_vx**2+tmp_vy**2)
+                            self.vx-=tmp_vx/4
+                            self.vy-=tmp_vy/4
+                            pass
+                        pass
             self.collision.remove(case)
 
         for fdbk in self.feedback:
@@ -100,13 +111,18 @@ class Slime(Monster):
                 self.idle_timer=0
                 tx,ty=play_loop.knight.x,play_loop.knight.y
                 dist=math.sqrt((self.x-tx)**2+(self.y-ty)**2)
-                if dist<1000:
+                if dist<400:
                     self.vx,self.vy,temp1,tempdeg=self.facedirection(self.x,self.y,tx,ty)
-                    self.vx,self.vy,self.face_dir=self.degreeintofacedir(tempdeg+math.radians(((2*random.random()-1)**2)*30))
-                    dashdist=self.movespeed*(0.6+(random.random()**2)*0.4)
-                    self.vx*=dashdist
+                    randegr=(random.random()-0.5)*math.radians(60)
+                    self.vx,self.vy,self.face_dir=self.degreeintofacedir(tempdeg+randegr)
+                    dashdist=self.movespeed*(0.6+(random.randint(0,20)**2)*0.001)
+                    self.vx *= dashdist
                     self.vy *= dashdist
                     self.state='move'
+                    self.state_timer=0
+                    self.frame=0
+                elif dist<600:
+                    self.state='jumpprep'   #일정 확률로 점프 시도하도록 변경?
                     self.state_timer=0
                     self.frame=0
                 pass
@@ -134,20 +150,83 @@ class Slime(Monster):
                 self.able_action=True
                 self.frame=0
                 self.state_timer=0
-        elif self.state=='jump':
+        elif self.state=='jumpprep':
             self.state_timer+=dt
             if self.state_timer<=0.25:
-                self.frame=(self.state_timer*4/0.25)
-            elif self.state_timer<=0.75:
+                self.frame=(self.state_timer*3/0.25)
+                self.x+=self.vx*dt
+                self.y+=self.vy*dt
+                self.vx*=pow(0.01,dt)
+                self.vy*=pow(0.01,dt)
+                self.sx,self.sy=self.x,self.y
+                self.tx,self.ty=play_loop.knight.x,play_loop.knight.y
+            elif self.state_timer<=0.5:
+                if self.height==0:
+                    self.sx, self.sy = self.x, self.y
+                    self.tx, self.ty = play_loop.knight.x, play_loop.knight.y
+                    tempvx,tempvy,temp1=self.degreeintofacedir(random.random()*2*math.pi)
+                    self.tx += 60 * tempvx * random.random()
+                    self.ty += 60 * tempvy * random.random()
+                t=0.5*(1+math.sin(((self.state_timer-0.25)/1.5-0.5)*math.pi))
+                self.x=self.tx*(t)+self.sx*(1-t)
+                self.y=self.ty*(t)+self.sy*(1-t)
+                self.height=MAX_HEIGHT*(1-((self.state_timer-0.25)/0.75-1)**2)
+            else:
+                self.frame=2
+                self.state_timer=0
+                self.height=MAX_HEIGHT*(1-(0.25/0.75-1)**2)
+                self.state='jump'
+        elif self.state=='jump':
+            self.state_timer+=dt
+            if self.state_timer<=0:
+                self.frame = 2
+                self.height=MAX_HEIGHT*(1-((self.state_timer+0.25)/0.75-1)**2)
+                t=0.5*(1+math.sin(((self.state_timer+0.25)/1.5-0.5)*math.pi))
+                self.x=self.tx*(t)+self.sx*(1-t)
+                self.y=self.ty*(t)+self.sy*(1-t)
+            elif self.state_timer<1.0:
+                self.height=MAX_HEIGHT*(1-((self.state_timer+0.25)/0.75-1)**2)
                 self.frame=3
-            elif self.state_timer<=1.25:
-                self.frame=3+((self.state_timer-0.75)*6/0.5)
+                t=0.5*(1+math.sin(((self.state_timer+0.25)/1.5-0.5)*math.pi))
+                print(f't=={t},self.state_timer=={self.state_timer}')
+                self.x=self.tx*(t)+self.sx*(1-t)
+                self.y=self.ty*(t)+self.sy*(1-t)
+            else:
+                self.height=MAX_HEIGHT*(1-(1.25/0.75-1)**2)
+                self.frame=3
+                self.state_timer=0
+                self.x,self.y=self.tx,self.ty
+                self.vx=0
+                self.vy=0
+                self.state='jumpafter'
+        elif self.state=='jumpafter':
+            self.state_timer+=dt
+            if self.state_timer<=0.25:
+                t=0.5*(1+math.sin(((self.state_timer+1.25)/1.5-0.5)*math.pi))
+                self.x=self.tx*(t)+self.sx*(1-t)
+                self.y=self.ty*(t)+self.sy*(1-t)
+                self.height=MAX_HEIGHT*(1-((self.state_timer+1.25)/0.75-1)**2)
+                self.frame=3
+                self.x+=self.vx*dt
+                self.y+=self.vy*dt
+                self.vx*=pow(0.01,dt)
+                self.vy*=pow(0.01,dt)
+            elif self.state_timer<0.5:
+                self.height=0
+                self.frame=3+((self.state_timer-0.25)*6/0.25)
+                self.x+=self.vx*dt
+                self.y+=self.vy*dt
+                self.vx*=pow(0.01,dt)
+                self.vy*=pow(0.01,dt)
             else:
                 self.state='idle'
                 self.idle_timer=0.75
                 self.able_action=True
                 self.frame=0
                 self.state_timer=0
+
+
+        self.vbx,self.vby=self.vx,self.vy
         pass
 
     def draw(self):
@@ -155,5 +234,5 @@ class Slime(Monster):
             Slime.jump_image.clip_draw(0, 0, 32, 32,int((self.x - play_loop.cam_x) / 3) * 3,int((self.y - play_loop.cam_y) / 3) * 3 + 12, 96, 96)
         elif self.state=='move':
             Slime.move_image.clip_draw((int(self.frame) % 4) * 32, self.face_dir * 32, 32, 32,int((self.x - play_loop.cam_x) / 3) * 3,int((self.y - play_loop.cam_y) / 3) * 3 + 12, 96, 96)
-        elif self.state=='jump':
-            Slime.jump_image.clip_draw(0,int(self.frame) * 32, 32, 32,int((self.x - play_loop.cam_x) / 3) * 3,int((self.y - play_loop.cam_y) / 3) * 3 + 12, 96, 96)
+        elif self.state=='jumpprep' or self.state=='jump' or self.state=='jumpafter':
+            Slime.jump_image.clip_draw(0,int(9-self.frame) * 32, 32, 32,int((self.x - play_loop.cam_x) / 3) * 3,int((self.y+self.height - play_loop.cam_y) / 3) * 3 + 12, 96, 96)
