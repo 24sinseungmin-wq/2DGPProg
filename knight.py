@@ -11,8 +11,10 @@ class Knight:
     def __init__(self):
         self.attack_image = load_image('knight_attack.png')
         self.walk_image = load_image('knight_walk.png')
-        self.max_hp=self.hp=100
-        self.max_sp=self.sp=100
+        self.max_hp=6
+        self.hp=6
+        self.max_paradox=0
+        self.paradox=0
         self.walkspeed=150
         self.attackspeed=1500
         self.state="walking"
@@ -188,13 +190,13 @@ class Knight:
 
     def draw(self):
         if self.state=="walking":
-            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int((self.x-play_loop.cam_x)/3)*3,int((self.y-play_loop.cam_y)/3)*3+48,96,96)
+            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int((self.x-play_loop.cam_x)/2)*2,int((self.y-play_loop.cam_y)/2)*2+32,64,64)
         elif self.state == "attack_charge" or self.state=="idle":
-            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int((self.x-play_loop.cam_x)/3)*3, int((self.y-play_loop.cam_y)/3)*3+48,96,96)
+            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int((self.x-play_loop.cam_x)/2)*2, int((self.y-play_loop.cam_y)/2)*2+32,64,64)
         elif self.state == "attacking":
-            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/3)*3, int((self.y-play_loop.cam_y)/3)*3+48,96,96)
+            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/2)*2, int((self.y-play_loop.cam_y)/2)*2+32,64,64)
         elif self.state == "attack_cooldown":
-            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/3)*3, int((self.y-play_loop.cam_y)/3)*3+48,96,96)
+            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/2)*2, int((self.y-play_loop.cam_y)/2)*2+32,64,64)
 
 class Swordeffect:
     image_1=None

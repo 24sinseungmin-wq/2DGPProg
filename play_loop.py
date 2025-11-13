@@ -1,5 +1,5 @@
 from pico2d import *
-import world,interface,time
+import world,ui,interface,time
 from knight import Knight
 from slime import Slime
 
@@ -33,9 +33,11 @@ def initscene():
     knight.y=300
     monster = []
     world.add_object(knight,8)
-    for i in range(5):
-        monster.append(Slime())
+    for i in range(10):
+        monster.append(Slime(1200,300,'idle',100,True))
         world.add_object(monster[len(monster) - 1], 8)
+
+    ui.uiinit(knight)
 
 def update():
     global running
@@ -47,7 +49,8 @@ def update():
     current_time += frame_time
     world.sortbypos(8)
     world.update()
-    #camtoknight()
+    ui.update()
+    camtoknight()
 
 def camtoknight():
     global cam_x
@@ -57,12 +60,13 @@ def camtoknight():
     to_y=knight.y-300.0
     cam_x=to_x
     cam_y=to_y
-    #cam_x=to_x*(1-pow(0.01,frame_time))+cam_x*pow(0.01,frame_time)
-    #cam_y=to_y*(1-pow(0.01,frame_time))+cam_y*pow(0.01,frame_time)
+    cam_x=to_x*(1-pow(0.01,frame_time))+cam_x*pow(0.01,frame_time)
+    cam_y=to_y*(1-pow(0.01,frame_time))+cam_y*pow(0.01,frame_time)
 
 def draw():
     clear_canvas()
     world.render()
+    ui.render()
     update_canvas()
 
 def finish():

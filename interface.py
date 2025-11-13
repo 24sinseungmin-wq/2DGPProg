@@ -11,7 +11,7 @@ def getcanvasheight():
 
 def process_mouse(type='No input',button='No input',x='No input',y='No input'):
     global toggleL,toggleR
-    print(f'Type={type},Button={button},x={x},y={y}')
+    #print(f'Type={type},Button={button},x={x},y={y}')
     pass
     if type==1024:
         if toggleL == True:
