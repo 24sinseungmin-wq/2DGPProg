@@ -30,6 +30,7 @@ class Monster:
         self.reverse=reversed
         self.typename="monster"
         self.delete=False
+        self.areas=[]
 
     def images(self):
         pass
@@ -65,13 +66,13 @@ class Monster:
         dirx = -math.sin(tempdir)
         diry = -math.cos(tempdir)
         dirresult = 0
-        if (tempdir >= -math.pi / 4 and tempdir < math.pi / 4):
+        if tempdir >= -math.pi / 4 and tempdir < math.pi / 4:
             dirresult = 3
-        elif (tempdir >= math.pi / 4 and tempdir < (3 * math.pi) / 4):
+        elif tempdir >= math.pi / 4 and tempdir < (3 * math.pi) / 4:
             dirresult = 0
-        elif (tempdir >= (3 * math.pi) / 4 or tempdir < -(3 * math.pi) / 4):
+        elif tempdir >= (3 * math.pi) / 4 or tempdir < -(3 * math.pi) / 4:
             dirresult = 2
-        elif (tempdir >= (-3 * math.pi) / 4 and tempdir < -math.pi / 4):
+        elif tempdir >= (-3 * math.pi) / 4 and tempdir < -math.pi / 4:
             dirresult = 1
         return dirx, diry, dirresult, tempdir
 
@@ -80,14 +81,20 @@ class Monster:
         dirx = -math.sin(tempdir)
         diry = -math.cos(tempdir)
         dirresult = 0
-        if (tempdir >= -math.pi / 4 and tempdir < math.pi / 4):
+        if tempdir >= -math.pi / 4 and tempdir < math.pi / 4:
             dirresult = 3
-        elif (tempdir >= math.pi / 4 and tempdir < (3 * math.pi) / 4):
+        elif tempdir >= math.pi / 4 and tempdir < (3 * math.pi) / 4:
             dirresult = 0
-        elif (tempdir >= (3 * math.pi) / 4 or tempdir < -(3 * math.pi) / 4):
+        elif tempdir >= (3 * math.pi) / 4 or tempdir < -(3 * math.pi) / 4:
             dirresult = 2
-        elif (tempdir >= (-3 * math.pi) / 4 and tempdir < -math.pi / 4):
+        elif tempdir >= (-3 * math.pi) / 4 and tempdir < -math.pi / 4:
             dirresult = 1
         return dirresult, tempdir
 
     #def draw(self)
+
+    def sendfeedback(self,fdbk):
+        self.feedback.append(fdbk)
+
+    def deleteaction(self):
+        pass

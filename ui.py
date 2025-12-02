@@ -11,6 +11,7 @@ ui=[[] for _ in range(4)]   #HP 바 등/HP 등/팝업창/팝업창 위
 
 HPBAR_X,HPBAR_Y=0,64
 HPBAR_ICONGAP=9*2
+ANIM_SPEED=0.6
 
 def render():
     for layer in ui:
@@ -152,7 +153,7 @@ class Health_bar(DefaultUI):
                 if self.icons[num]['type']=='empty_paradox':
                     frame_x,frame_y=5,9
                 elif self.icons[num]['type']=='one_third_paradox' or self.icons[num]['type']=='two_third_paradox' or self.icons[num]['type']=='full_paradox':
-                    frame_x,frame_y=self.icons[num]['frame'],5
+                    frame_x,frame_y=self.icons[num]['frame'],9
                 else:
                     self.icons[num]['frame']=5
                     self.icons[num]['type']='empty_paradox'
@@ -186,7 +187,7 @@ class Health_bar(DefaultUI):
                     if self.icons[num]['frame']==-1:
                         self.icons[num]['frame']=0
                     else:
-                        self.icons[num]['frame']+=dt*8
+                        self.icons[num]['frame']+=dt*ANIM_SPEED*8
                 if self.icons[num]['frame']>5:
                     self.icons[num]['frame']=5
 

@@ -2,6 +2,8 @@ from pico2d import *
 import world,ui,interface,time
 from knight import Knight
 from slime import Slime
+from area import Area
+from shadow import Shadow
 
 frame_time = 0.0
 current_time = time.time()
@@ -33,9 +35,11 @@ def initscene():
     knight.y=300
     monster = []
     world.add_object(knight,8)
-    for i in range(10):
-        monster.append(Slime(1200,300,'idle',100,True))
+    for i in range(5):
+        monster.append(Slime(1200,300,'idle',0,True))
         world.add_object(monster[len(monster) - 1], 8)
+    area=Area(1200,200,64,5.0,0,1,False,0)
+    world.add_object(area,6)
 
     ui.uiinit(knight)
 
@@ -56,8 +60,8 @@ def camtoknight():
     global cam_x
     global cam_y
     global knight
-    to_x=knight.x-800.0
-    to_y=knight.y-300.0
+    to_x=knight.x-400.0
+    to_y=knight.y-400.0
     cam_x=to_x
     cam_y=to_y
     cam_x=to_x*(1-pow(0.01,frame_time))+cam_x*pow(0.01,frame_time)

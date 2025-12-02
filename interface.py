@@ -7,7 +7,7 @@ toggleL=False
 toggleR=False
 
 def getcanvasheight():
-    return 600
+    return 800
 
 def process_mouse(type='No input',button='No input',x='No input',y='No input'):
     global toggleL,toggleR

@@ -6,8 +6,8 @@ import world
 
 nextplaymode='gameplaymode'
 reply='None'
-canvas_width=1600
-canvas_height=600
+canvas_width=800
+canvas_height=800
 
 def getcanvasheight():
     return canvas_height
@@ -23,8 +23,8 @@ while True:
         gameplaymode.initscene()
         nextplaymode='None'
         while nextplaymode == 'None':
-            world.deletemanage()
             world.collidemanage()
+            world.deletemanage()
             gameplaymode.handle_events()
             reply=gameplaymode.update()
             if reply and reply!='None':
