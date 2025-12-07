@@ -33,6 +33,21 @@ def clear():
     for layer in world:
         layer.clear()
 
+def clearshopobj():
+    global world
+    for layer in world:
+        for o in layer:
+            if o.typename=="interact":
+                o.delete=True
+
+def mobcheck():
+    global world
+    for layer in world:
+        for o in layer:
+            if o.typename=="monster" or o.typename=="projectile" or o.typename=="area":
+                return True
+    return False
+
 def collidecheck(requester,targettype,reason="undefined"):
     global world, collide_checklist
 

@@ -234,7 +234,7 @@ class Shooter_Slime(Monster):
                 self.frame=0
                 self.state_timer=0
         elif self.state=='death':
-            play_loop.knight.money+=random.randint(7,15)
+            play_loop.knight.money+=random.randint(15,30)
             self.delete=True
             # Slime_death
             pass
@@ -313,8 +313,8 @@ class Shooter_Slime(Monster):
                 a.x+=tvx*dt
                 a.y+=tvy*dt
                 if (tx - a.x) ** 2 + (ty - a.y) ** 2 < (self.r) ** 2:
-                    a.life_timer=0.5
-                elif a.life_timer<4.5:
+                    a.life_timer=0.0
+                elif a.life_timer<1.5:
                     a.life_timer+=1
 
         self.feedbackcheck()
@@ -325,8 +325,9 @@ class Shooter_Slime(Monster):
         elif self.state=='idle':
             tx,ty=play_loop.knight.x,play_loop.knight.y
             dist=math.sqrt((self.x-tx)**2+(self.y-ty)**2)
-            if self.hp >= self.max_hp and random.random()>math.pow(0.9,dt):
+            if self.hp >= self.max_hp and random.random()>math.pow(0.5,dt):
                 self.delete=True
+                play_loop.knight.money += random.randint(35, 75)
                 #Slime_spawn_reverse
             if self.rand_wait==0:
                 self.idle_timer=0
@@ -356,7 +357,18 @@ class Shooter_Slime(Monster):
                     self.rand_wait=0
                     self.frame = 0
                 elif dist <= SHOOT_DIST_MAX:
-                    if random.randint(0, 1):
+                    tx,ty=play_loop.knight.x,play_loop.knight.y
+                    tvx, tvy, temp1, tempdeg = self.facedirection(self.x, self.y, tx, ty)
+                    distmul=400
+                    tvx *= distmul
+                    tvy *= distmul
+                    if random.randint(0, 1) and play_loop.knight.parapos_check(self.x+tvx,self.y+tvy,self.r+100):
+                        self.state_timer = 1.1
+                        self.frame = 0
+                        self.projflag = False
+                        self.rand_wait=0
+                        self.state = 'shoot'
+                    else:
                         self.vy, self.vx, temp1, tempdeg = self.facedirection(self.x, self.y, tx, ty)
                         randegr = (random.random() - 0.5) * math.radians(20)
                         self.vy, self.vx, self.face_dir = self.degreeintofacedir(tempdeg + randegr)
@@ -367,12 +379,6 @@ class Shooter_Slime(Monster):
                         self.state_timer = 0
                         self.rand_wait=0
                         self.frame = 0
-                    else:
-                        self.state_timer = 1.1
-                        self.frame = 0
-                        self.projflag = False
-                        self.rand_wait=0
-                        self.state = 'shoot'
                 elif dist <= 1000:
                     self.vx, self.vy, temp1, tempdeg = self.facedirection(tx, ty, self.x, self.y)
                     randegr = (random.random() - 0.5) * math.radians(60)

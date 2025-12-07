@@ -1,12 +1,5 @@
 from pico2d import *
-import world,ui,interface,time
-from knight import Knight
-from slime import Slime
-from shooter_slime import Shooter_Slime
-from area import Area
-from shadow import Shadow
-from interactobj import Interactobj
-from background import Background
+import time
 frame_time = 0.0
 current_time = time.time()
 knight=None
@@ -14,7 +7,7 @@ running=True
 start=False
 cam_x=0
 cam_y=0
-background=None
+image=None
 
 def handle_events():
     global running
@@ -30,27 +23,34 @@ def handle_events():
             start = True
 
 def initscene():
+    global image,running,start
+    running=True
+    start=False
+    if image is None:
+        image = load_image('temptitle.png')
     pass
 
 def update():
-    global running
+    global running,start
     if not running:
         finish()
         return 'quitgame'
     elif start:
+        start=False
         finish()
         return 'gameplaymode_reset'
     global frame_time,current_time
     frame_time = time.time() - current_time
     current_time += frame_time
-    ui.update()
 
 def draw():
+    global image
     clear_canvas()
+    image.draw_to_origin(0,0,800,800)
     update_canvas()
 
 def finish():
-    world.clear()
+    pass
 
 def pause():pass
 def resume():pass

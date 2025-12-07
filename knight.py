@@ -1,10 +1,11 @@
-from pico2d import load_image, get_time, load_font, draw_rectangle
+from pico2d import load_image, get_time, load_font, draw_rectangle,clamp
 import math
 
 from sdl2 import SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4
 
 import play_loop
 import interface
+import ui
 import world
 from shadow import Shadow
 
@@ -16,14 +17,15 @@ class Knight:
         self.walk_image = load_image('knight_walk.png')
         self.max_hp=6
         self.hp=6
-        self.max_paradox=9
+        self.max_paradox=3
         self.paradox=0
         self.iframe=0
         self.paradox_iframe=0
         self.walkspeed=200
         self.attackspeed=2000
         self.attackdamage=5
-        self.attackrange=100
+        self.attackrange=50
+        self.attackchargetime=0.75
         self.state="walking"
         self.face_dir=1
         self.state_timer=0
@@ -42,6 +44,7 @@ class Knight:
         self.delete=False
         self.staggerflag=False
         self.paradox_damage_flag=False
+        self.paradoxeffflag=False
         self.damage_hp_reserved=0
         self.damage_paradox_reserved=0
         self.areas=[]
@@ -64,7 +67,13 @@ class Knight:
 
     def damage_ignore_iframe(self,paradox_dmg):
         self.paradox+=paradox_dmg
+        self.paradoxeffflag=True
         self.paradox_damage_flag=True
+        if self.hp<=0:
+            self.paradox =int(self.paradox/3)*3+3
+            self.hp=self.max_hp
+        if self.paradox>self.max_paradox:
+            play_loop.to_title=True
 
     def set_parapos(self,x,y,r):
         self.para_x=x
@@ -75,6 +84,8 @@ class Knight:
         return ((self.para_x-x)**2+(self.para_y-y)**2)<=(r+self.para_r)**2
 
     def update(self):
+
+
         #interface에서 들어온 명령 받음
         for command in self.order:
             if command[0]=='faceto':
@@ -114,7 +125,7 @@ class Knight:
 
             elif command[0]=='attackrelease':
                 if self.able_action and self.state=='attack_charge':
-                    if self.state_timer>=0.75:
+                    if self.state_timer>=self.attackchargetime:
                         self.able_action=False
                         self.state='attacking'
                         self.iframe=0.1
@@ -177,7 +188,7 @@ class Knight:
 
         elif self.state=="attack_charge":
             self.state_timer+=dt
-            self.frame = (self.state_timer * 2 / 0.75)
+            self.frame = (self.state_timer * 2 / self.attackchargetime)
             if self.frame>2:
                 self.frame=2
 
@@ -194,7 +205,7 @@ class Knight:
                 world.damagecollide(self.attackdamage, self.x, self.y, self.x + self.vx * dt, self.y + self.vy * dt, self.attackrange, 0.03, 0.03, "monster", self)
             if self.state_timer>=0.1:
                 self.state="attack_cooldown"
-                self.iframe=0.2
+                self.iframe=0.4
                 self.frame=0
                 self.state_timer=0
 
@@ -244,10 +255,20 @@ class Knight:
                 self.state_timer = 0
                 self.iframe = 2.0
                 self.hp -= self.damage_hp_reserved
-                self.hp -= self.damage_paradox_reserved
+                if self.damage_paradox_reserved>0:
+                    self.paradoxeffflag=True
+                self.paradox += self.damage_paradox_reserved
                 self.vx,self.vy=self.dmgvx,self.dmgvy
                 self.damage_hp_reserved = self.damage_paradox_reserved = 0
+                if self.hp <= 0:
+                    self.paradox =int(self.paradox/3)*3+3
+                    self.paradoxeffflag=True
+                    self.hp = self.max_hp
+                if self.paradox > self.max_paradox:
+                    play_loop.to_title=True
             self.staggerflag=False
+        self.x = clamp(self.r-play_loop.background.w / 4, self.x, play_loop.background.w / 4-self.r)
+        self.y = clamp(self.r-play_loop.background.h / 4, self.y, play_loop.background.h / 4-self.r)
         self.shadow.x,self.shadow.y=self.x,self.y
 
     def control(self,action,x,y):
@@ -269,14 +290,23 @@ class Knight:
         return dirx,diry,dirresult
 
     def draw(self):
-        if self.state=="walking":
-            self.walk_image.clip_draw((int(self.frame)%4)*32,self.face_dir*32,32,32,int((self.x-play_loop.cam_x)/2)*2,int((self.y-play_loop.cam_y)/2)*2+32,64,64)
-        elif self.state == "attack_charge" or self.state=="idle" or self.state=="stagger":
-            self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32, int((self.x-play_loop.cam_x)/2)*2, int((self.y-play_loop.cam_y)/2)*2+32,64,64)
-        elif self.state == "attacking":
-            self.attack_image.clip_draw((3+int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/2)*2, int((self.y-play_loop.cam_y)/2)*2+32,64,64)
-        elif self.state == "attack_cooldown":
-            self.attack_image.clip_draw((5+int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32, int((self.x-play_loop.cam_x)/2)*2, int((self.y-play_loop.cam_y)/2)*2+32,64,64)
+        if self.state == "attacking":
+            self.attack_image.clip_draw((3 + int(self.frame) % 3) * 32, (self.face_dir) * 32, 32, 32,
+                                        int((self.x - play_loop.cam_x) / 2) * 2,
+                                        int((self.y - play_loop.cam_y) / 2) * 2 + 32, 64, 64)
+        elif int(self.iframe*10)%2==1 or self.iframe<=0:
+            if self.state == "walking":
+                self.walk_image.clip_draw((int(self.frame) % 4) * 32, self.face_dir * 32, 32, 32,
+                                          int((self.x - play_loop.cam_x) / 2) * 2,
+                                          int((self.y - play_loop.cam_y) / 2) * 2 + 32, 64, 64)
+            elif self.state == "attack_charge" or self.state == "idle" or self.state == "stagger":
+                self.attack_image.clip_draw((int(self.frame) % 10) * 32, self.face_dir * 32, 32, 32,
+                                            int((self.x - play_loop.cam_x) / 2) * 2,
+                                            int((self.y - play_loop.cam_y) / 2) * 2 + 32, 64, 64)
+            elif self.state == "attack_cooldown":
+                self.attack_image.clip_draw((5 + int(self.frame) % 5) * 32, (self.face_dir) * 32, 32, 32,
+                                            int((self.x - play_loop.cam_x) / 2) * 2,
+                                            int((self.y - play_loop.cam_y) / 2) * 2 + 32, 64, 64)
 
     def deleteaction(self):
         if not self.shadow==None:

@@ -5,6 +5,10 @@ import play_loop as gameplaymode
 import titlemode as titlemode
 import world
 
+import os
+print(os.getenv('PYSDL2_DLL_PATH'))
+
+
 nextplaymode='titlemode_reset'
 reply='None'
 canvas_width=800

@@ -1,25 +1,44 @@
-from pico2d import load_image, get_time, load_font, draw_rectangle
+from pico2d import load_image, get_time, load_font, draw_rectangle,get_canvas_width,get_canvas_height
 import math
 
 from sdl2 import SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4
 
 import play_loop
 import interface
+import random
 
 #player=play_loop.knight
 ui=[[] for _ in range(4)]   #HP 바 등/HP 등/팝업창/팝업창 위
+paradoxeffecttimer=0
+paradoxeffectsubtimer=0
+paradoximage=None
+paradoxdisplay=[[0,0,0] for _ in range(15)]
 
 HPBAR_X,HPBAR_Y=0,64
 HPBAR_ICONGAP=9*2
 ANIM_SPEED=0.6
 
+def clear():
+    global ui,paradoxeffecttimer
+    paradoxeffecttimer=0
+    for layer in ui:
+        for o in layer:
+            o.delete=True
+
 def render():
+    global ui
     for layer in ui:
         for o in layer:
             if not o.hidden:
                 o.draw()
+    if paradoxeffecttimer>0:
+        paradoximage.clip_draw(0,480,80,80,int(get_canvas_width()/2),int(get_canvas_height()/2),get_canvas_width(),get_canvas_height())
+        for eff in paradoxdisplay:
+            paradoximage.clip_draw(0,80+eff[2]*80,80,80,random.randint(-int(get_canvas_width()/2)*2,int(get_canvas_width()/2)*2),random.randint(-int(play_loop.get_canvas_height()/2)*2,int(play_loop.get_canvas_height()/2)*2),320,320)
 
 def update():
+    global ui
+    global paradoxeffecttimer,paradoxeffectsubtimer,paradoxdisplay
     for layer in ui:
         for o in layer:
             if not o.hidden:
@@ -28,15 +47,31 @@ def update():
                 if o.delete:
                     o.deletefunc()
                     layer.remove(o)
+    if play_loop.knight.paradoxeffflag:
+        paradoxeffecttimer = 0.3
+        play_loop.knight.paradoxeffflag=False
+    if paradoxeffecttimer>0:
+        paradoxeffecttimer-=play_loop.frame_time
+        paradoxeffectsubtimer-=play_loop.frame_time
+        if paradoxeffectsubtimer<0:
+            paradoxeffectsubtimer=0.1
+            for eff in paradoxdisplay:
+                eff[0],eff[1]=random.randint(0,int(get_canvas_width()/2)),random.randint(0,int(get_canvas_height()/2))
+                eff[2]=random.randint(1,6)
+
 
 def addpopup(popup):
+    global ui
     ui[0].append(popup)
 
 def uiinit(knight):
+    global ui,paradoximage
     for layer in ui:
         layer.clear()
     health_bar=Health_bar(knight,False)
     ui[1].append(health_bar)
+    if paradoximage==None:
+        paradoximage = load_image('paradox_effect.png')
 
 class DefaultUI:
     def __init__(self,hidden=True):
@@ -329,7 +364,7 @@ class Popup(DefaultUI):
         if letter=="9": return 3,4
         if letter=="-": return 2,0
         if letter=="+": return 2,1
-        if letter=="?": return 2,2
+        if letter=="?": return 2,3
         if letter=="H": return 2,4
         if letter=="A": return 1,0
         if letter=="P": return 1,1

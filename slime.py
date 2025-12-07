@@ -248,7 +248,7 @@ class Slime(Monster):
                 self.frame=0
                 self.state_timer=0
         elif self.state=='death':
-            play_loop.knight.money+=random.randint(7,15)
+            play_loop.knight.money+=random.randint(10,25)
             self.delete=True
             # Slime_death
             pass
@@ -309,8 +309,9 @@ class Slime(Monster):
         elif self.state=='idle':
             tx,ty=play_loop.knight.x,play_loop.knight.y
             dist=math.sqrt((self.x-tx)**2+(self.y-ty)**2)
-            if self.hp >= self.max_hp and random.random()>math.pow(0.9,dt):
+            if self.hp >= self.max_hp and random.random()>math.pow(0.5,dt):
                 self.delete=True
+                play_loop.knight.money += random.randint(50, 100)
                 #Slime_spawn_reverse
             elif self.rand_wait==0:
                 self.idle_timer=0
