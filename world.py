@@ -99,7 +99,7 @@ def linedistcalcul(x1,y1,x2,y2,dotx,doty):
     pos_d=(x1+mul_ad*(x2-x1),y1+mul_ad*(y2-y1))
     return pos_d
 
-def damagecolide(damage,x1,y1,x2,y2,r,backmul,sidemul,targettype,attacker=None):
+def damagecollide(damage, x1, y1, x2, y2, r, backmul, sidemul, targettype, attacker=None):
     global world
     for layer in world:
         for o in layer:

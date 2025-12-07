@@ -1,4 +1,4 @@
-from pico2d import load_image, get_time, load_font, draw_rectangle
+from pico2d import load_image, get_time, load_font, draw_rectangle,clamp
 import math
 
 from sdl2 import SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4
@@ -36,6 +36,8 @@ class Monster:
         pass
 
     def update(self):
+        self.x = clamp(self.r-play_loop.background.w / 4, self.x, play_loop.background.w / 4-self.r)
+        self.y = clamp(self.r-play_loop.background.h / 4, self.y, play_loop.background.h / 4-self.r)
         if self.reverse:
             self.update_reverse()
         else:

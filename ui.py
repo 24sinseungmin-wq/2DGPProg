@@ -24,12 +24,19 @@ def update():
         for o in layer:
             if not o.hidden:
                 o.update()
+            if hasattr(o, 'delete'):
+                if o.delete:
+                    o.deletefunc()
+                    layer.remove(o)
+
+def addpopup(popup):
+    ui[0].append(popup)
 
 def uiinit(knight):
     for layer in ui:
         layer.clear()
     health_bar=Health_bar(knight,False)
-    ui[0].append(health_bar)
+    ui[1].append(health_bar)
 
 class DefaultUI:
     def __init__(self,hidden=True):
@@ -222,5 +229,116 @@ class Health_bar(DefaultUI):
         if (self.length-uialllen+0.6)**2<0.5:
             self.length=uialllen-0.6
 
+class Popup(DefaultUI):
+    bg_image_n=None
+    bg_image_p=None
+    text_image=None
+    def __init__(self, x=0.0, y=0.0,w=0.0,h=0.0, tw=100.0, th=100.0, text=["P???P"], popup_type="Normal"):
+        super().__init__(False)
+        self.image()
+        self.type=popup_type
+        self.x,self.y=x,y
+        self.tw,self.th=tw,th
+        self.w,self.h=w,h
+        self.text=text
+        self.deleteready=False
+        self.delete=False
+        self.autodelete=False
+        """
+        0123456789-+:?HAPGabcde 
+        """
+    def image(self):
+        if type=="Paradox" and Popup.bg_image_p is None:
+            Popup.bg_image_p=load_image("paradox_popup.png")
+        elif Popup.bg_image_n is None:
+            Popup.bg_image_n=load_image("normal_popup.png")
+        if Popup.text_image is None:
+            Popup.text_image=load_image("tempfont.png")
 
+    def draw(self):
+        uix,uiy = int((self.x - play_loop.cam_x) / 2),int((self.y - play_loop.cam_y) / 2)
+        bg_cxm=bg_cxp=int(uix)
+        bg_cym = bg_cyp = int(uiy)
+        bg_ew=int(self.w/2)
+        bg_eh=int(self.h/2)
+        bg_xm=int(uix)-int(self.w/2)
+        bg_xp=int(uix)+int(self.w/2)
+        bg_ym=int(uiy)-int(self.h/2)
+        bg_yp=int(uiy)+int(self.h/2)
+        if self.w>=16:
+            bg_cxm=bg_xm+8
+            bg_cxp=bg_xp-8
+            bg_ew=8
+        if self.h>=16:
+            bg_cym=bg_ym+8
+            bg_cyp=bg_yp-8
+            bg_eh=8
+        bg_xm+=bg_ew/2
+        bg_ym+=bg_eh/2
+        bg_cxp+=bg_ew/2
+        bg_cyp+=bg_eh/2
+        Popup.bg_image_n.clip_draw(8,8,16,16,int(uix)*2,int(uiy)*2,2*int(self.w),2*int(self.h))
+        Popup.bg_image_n.clip_draw(0,0,bg_ew,bg_eh,bg_xm*2,bg_ym*2,2*bg_ew,2*bg_eh)
+        Popup.bg_image_n.clip_draw(32-bg_ew,0,bg_ew,bg_eh,bg_cxp*2,bg_ym*2,2*bg_ew,2*bg_eh)
+        Popup.bg_image_n.clip_draw(0,32-bg_eh,bg_ew,bg_eh,bg_xm*2,bg_cyp*2,2*bg_ew,2*bg_eh)
+        Popup.bg_image_n.clip_draw(32-bg_ew,32-bg_eh,bg_ew,bg_eh,bg_cxp*2,bg_cyp*2,2*bg_ew,2*bg_eh)
 
+        letter_y=bg_cyp-4
+        if self.h>=8 and len(self.text)>0:
+            for line in self.text:
+                if len(line)==0 or letter_y<bg_cym: break
+                letter_x=bg_cxm
+                for letter in line:
+                    if letter_x > bg_cxp: break
+                    imy, imx = self.fontalign(letter)
+                    Popup.text_image.clip_draw(8 * imx, 8 * imy, 8, 8, letter_x * 2, letter_y * 2, 16, 16)
+                    letter_x += 8
+                letter_y -= 8
+    def update(self):
+        dt=play_loop.frame_time
+        if self.w!=self.tw: self.w=self.w*pow(0.05,dt)+self.tw*(1-pow(0.05,dt))
+        if self.h!=self.th: self.h=self.h*pow(0.05,dt)+self.th*(1-pow(0.05,dt))
+        if self.w>self.tw:
+            self.w-=dt*10
+            if self.w<self.tw:self.w=self.tw
+        elif self.w<self.tw:
+            self.w+=dt*10
+            if self.w>self.tw:self.w=self.tw
+        if self.h>self.th:
+            self.h-=dt*10
+            if self.h<self.th:self.h=self.th
+        elif self.h<self.th:
+            self.h+=dt*10
+            if self.h>self.th:self.h=self.th
+        if self.w<=0 and self.h<=0 and self.tw<=0 and self.th<=0:
+            self.deleteready=True
+        if self.deleteready and self.autodelete and not self.delete:
+            self.delete=True
+    def deletefunc(self):
+        pass
+    def fontalign(self,letter):
+        if letter=="0": return 4,0
+        if letter=="1": return 4,1
+        if letter=="2": return 4,2
+        if letter=="3": return 4,3
+        if letter=="4": return 4,4
+        if letter=="5": return 3,0
+        if letter=="6": return 3,1
+        if letter=="7": return 3,2
+        if letter=="8": return 3,3
+        if letter=="9": return 3,4
+        if letter=="-": return 2,0
+        if letter=="+": return 2,1
+        if letter=="?": return 2,2
+        if letter=="H": return 2,4
+        if letter=="A": return 1,0
+        if letter=="P": return 1,1
+        if letter=="G": return 1,2
+        if letter=="a": return 1,3
+        if letter=="b": return 1,4
+        if letter=="c": return 0,0
+        if letter=="d": return 0,1
+        if letter=="e": return 0,2
+        if letter=="f": return 0,3
+        if letter=="L": return 0,4
+        if letter==" " : return 2,3

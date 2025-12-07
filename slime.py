@@ -1,4 +1,4 @@
-from pico2d import load_image, get_time, load_font, draw_rectangle
+from pico2d import load_image, get_time, load_font, draw_rectangle,clamp
 import math
 import random
 from monsterbase import Monster
@@ -79,7 +79,7 @@ class Slime(Monster):
                         self.hp -= fdbk[2]
                     print(f'Slime hit! hp={self.hp}')
 
-                    if self.hp < 0:
+                    if self.hp <= 0:
                         self.hp = 0
                         if not self.reverse:
                             self.state = "death"
@@ -172,7 +172,7 @@ class Slime(Monster):
             self.vy*=pow(0.05,dt)
             if self.state_timer>0.5:
                 self.state='idle'
-                self.idle_timer=1.0+0.5*(random.random()**2)
+                self.idle_timer=0.5+0.5*(random.random()**2)
                 self.able_action=True
                 self.frame=0
                 self.state_timer=0
@@ -209,7 +209,9 @@ class Slime(Monster):
                         self.ty += self.sy
                     self.tx += 60 * tempvx * random.random()**2
                     self.ty += 60 * tempvy * random.random()**2
-                    area=Area(self.tx,self.ty,32,1.25-self.state_timer,1,0,False,300,["knight"])
+                    self.tx = clamp(self.r-play_loop.background.w / 4, self.tx, play_loop.background.w / 4-self.r)
+                    self.ty = clamp(self.r-play_loop.background.h / 4, self.ty, play_loop.background.h / 4-self.r)
+                    area=Area(self.tx,self.ty,32,1.25-self.state_timer,2,0,False,300,["knight"])
                     world.add_object(area,6)
                     self.areas.append(area)
                 t=0.5*(1+math.sin(((self.state_timer-0.15)/1.2-0.5)*math.pi))
@@ -241,11 +243,12 @@ class Slime(Monster):
                 self.vy*=pow(0.01,dt)
             else:
                 self.state='idle'
-                self.idle_timer=2
+                self.idle_timer=1.5
                 self.able_action=True
                 self.frame=0
                 self.state_timer=0
         elif self.state=='death':
+            play_loop.knight.money+=random.randint(7,15)
             self.delete=True
             # Slime_death
             pass
@@ -311,14 +314,14 @@ class Slime(Monster):
                 #Slime_spawn_reverse
             elif self.rand_wait==0:
                 self.idle_timer=0
-                self.rand_wait_idle=1.0+0.5*(random.random()**2)
-                self.rand_wait=random.random()*5
-                if 50<=dist and self.rand_wait<=1:
+                self.rand_wait_idle=0.5+0.5*(random.random()**2)
+                self.rand_wait=random.random()*3
+                if 50<=dist and self.rand_wait<=0.75:
                     self.state='teleport'
                     self.state_timer=0
                     return
-                elif dist < min(250+random.random()*150,play_loop.knight.walkspeed*2) and self.rand_wait>=2.0 and play_loop.knight.parapos_check(self.x,self.y,self.r+64):
-                    self.rand_wait=2.01
+                elif dist < min(250+random.random()*150,play_loop.knight.walkspeed*2) and self.rand_wait>=1.5 and play_loop.knight.parapos_check(self.x,self.y,self.r+64):
+                    self.rand_wait=1.51
                     play_loop.knight.set_parapos(self.x,self.y,64)
                 else:
                     self.rand_wait=self.rand_wait_idle
@@ -328,7 +331,7 @@ class Slime(Monster):
             self.vx*=pow(0.05,dt)
             self.vy*=pow(0.05,dt)
             if self.idle_timer>=self.rand_wait:
-                if self.rand_wait >= 2.0:
+                if self.rand_wait >= 1.0:
                     self.state = 'jump'
                     self.hpareaflag = True
                     self.state_timer = 1.6
@@ -413,6 +416,8 @@ class Slime(Monster):
                     tmp_vx*=-jumpdist
                     tmp_vy*=-jumpdist
                     self.tx,self.ty=tmp_vx+self.x,tmp_vy+self.y
+                    self.tx = clamp(self.r-play_loop.background.w / 4, self.tx, play_loop.background.w / 4-self.r)
+                    self.ty = clamp(self.r-play_loop.background.h / 4, self.ty, play_loop.background.h / 4-self.r)
                     area = Area(self.x, self.y, 64, self.state_timer+EXTRA_PARADOX_TIME, 0, 2, False, 0, ["knight"])
                     world.add_object(area, 6)
                     self.areas.append(area)
@@ -427,7 +432,7 @@ class Slime(Monster):
                 self.vy*=pow(0.01,dt)
             elif self.state_timer<1.5:
                 if self.hpareaflag:
-                    area=Area(self.x,self.y,32,0.25,1,0,True,-300,["knight"])
+                    area=Area(self.x,self.y,32,0.25,2,0,True,-300,["knight"])
                     world.add_object(area,6)
                     self.areas.append(area)
                     self.hpareaflag=False

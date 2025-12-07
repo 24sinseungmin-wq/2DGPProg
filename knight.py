@@ -21,7 +21,7 @@ class Knight:
         self.iframe=0
         self.paradox_iframe=0
         self.walkspeed=200
-        self.attackspeed=3000
+        self.attackspeed=2000
         self.attackdamage=5
         self.attackrange=100
         self.state="walking"
@@ -50,6 +50,9 @@ class Knight:
         self.para_r=1000
         self.shadow=Shadow(self.x,self.y,0)
         world.add_object(self.shadow,5)
+        self.money=55
+        self.xp=0
+        self.level=0
 
     def damageknockback(self,hp_dmg,paradox_dmg,vx,vy):
         if self.action!='attacking' and self.iframe<=0:
@@ -111,7 +114,7 @@ class Knight:
 
             elif command[0]=='attackrelease':
                 if self.able_action and self.state=='attack_charge':
-                    if self.state_timer>=0.5:
+                    if self.state_timer>=0.75:
                         self.able_action=False
                         self.state='attacking'
                         self.iframe=0.1
@@ -174,7 +177,7 @@ class Knight:
 
         elif self.state=="attack_charge":
             self.state_timer+=dt
-            self.frame = (self.state_timer * 2 / 0.5)
+            self.frame = (self.state_timer * 2 / 0.75)
             if self.frame>2:
                 self.frame=2
 
@@ -188,7 +191,7 @@ class Knight:
                 self.y += self.vy * dt
                 while self.para_r < 1000:
                     self.para_r += math.sqrt(self.vx ** 2 + self.vy ** 2)*dt
-                world.damagecolide(self.attackdamage, self.x, self.y, self.x + self.vx * dt, self.y + self.vy * dt, self.attackrange,0.03, 0.03, "monster", self)
+                world.damagecollide(self.attackdamage, self.x, self.y, self.x + self.vx * dt, self.y + self.vy * dt, self.attackrange, 0.03, 0.03, "monster", self)
             if self.state_timer>=0.1:
                 self.state="attack_cooldown"
                 self.iframe=0.2
@@ -239,7 +242,7 @@ class Knight:
                 self.frame = 0
                 self.able_action = False
                 self.state_timer = 0
-                self.iframe = 1.5
+                self.iframe = 2.0
                 self.hp -= self.damage_hp_reserved
                 self.hp -= self.damage_paradox_reserved
                 self.vx,self.vy=self.dmgvx,self.dmgvy
